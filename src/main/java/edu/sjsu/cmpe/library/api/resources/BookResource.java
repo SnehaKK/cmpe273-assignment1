@@ -77,7 +77,10 @@ public class BookResource {
 	public Response getBookByIsbn(@PathParam("isbn") LongParam isbn)
 	{
 		Book book = bookRepository.getBookByISBN(isbn.get());
-	
+		if (book == null){
+			//When book is not found. Error message shown.
+			return Response.status(404).entity("ERROR :404 Book with isbn :"+isbn+" not found").build();
+		}
 		BookDto bookResponse = new BookDto(book);
 		bookResponse.addLink(new LinkDto("view-book", "/books/" + book.getIsbn(),"GET"));
 		bookResponse.addLink(new LinkDto("update-book","/books/" + book.getIsbn(), "PUT"));
@@ -85,10 +88,10 @@ public class BookResource {
 		bookResponse.addLink(new LinkDto("create-reviews","/books/" + book.getIsbn()+"/reviews", "POST"));
 		//The next line should be displayed if there are reviews.
 		if(book.getReviews().size() > 0) {
-		bookResponse.addLink(new LinkDto("update-reviews","/books/" + book.getIsbn()+"/reviews", "GET"));
+			bookResponse.addLink(new LinkDto("update-reviews","/books/" + book.getIsbn()+"/reviews", "GET"));
 		}
 		// add more links
-      
+
 		return Response.status(201).entity(bookResponse).build();
 	}
 	
@@ -97,7 +100,11 @@ public class BookResource {
 	@Timed(name = "delete-book")
 	public Response deleteBookByIsbn(@PathParam("isbn") LongParam isbn) 
 	{
-	
+		Book book = bookRepository.getBookByISBN(isbn.get());
+		if (book == null){
+			//When book is not found. Error message shown.
+			return Response.status(404).entity("ERROR :404 Book with isbn :"+isbn+" not found").build();
+		}
 		bookRepository.deleteBook(isbn.get());
 		LinksDto links = new LinksDto();
 		links.addLink(new LinkDto("create-book", "/books", "POST"));
@@ -119,26 +126,30 @@ public class BookResource {
 		Book book = null;
 		//Update the status
 		if(status!= null || status.equalsIgnoreCase("")) {
-			 book = bookRepository.getBookByISBN(isbn.get());
-			
-			if(status.equalsIgnoreCase(Book.STATUS.available.toString())) {
-			book.setBookStatus(Book.STATUS.available); }
-			else if(status.equalsIgnoreCase(Book.STATUS.checkedOut.toString())) {
-				book.setBookStatus(Book.STATUS.checkedOut); }    
-			else if(status.equalsIgnoreCase(Book.STATUS.lost.toString())) {
-				book.setBookStatus(Book.STATUS.lost); }
-			else if(status.equalsIgnoreCase(Book.STATUS.inQueue.toString())) {
-				book.setBookStatus(Book.STATUS.inQueue); }
+			book = bookRepository.getBookByISBN(isbn.get());
+			if (book == null){
+				//When book is not found. Error message shown.
+				return Response.status(404).entity("ERROR :404 Book with isbn :"+isbn+" not found").build();
+			}
+			if(status.equalsIgnoreCase("available")) {
+				book.setBookStatus("available"); }
+			else if(status.equalsIgnoreCase("checked-out")) {
+				book.setBookStatus("checked-out"); }    
+			else if(status.equalsIgnoreCase("lost")) {
+				book.setBookStatus("lost"); }
+			else if(status.equalsIgnoreCase("in-queue")) {
+				book.setBookStatus("in-queue"); }
 			else{
-				book.setBookStatus(Book.STATUS.available);
+				book.setBookStatus("available");
 				//Return an error here
+				return Response.status(404).entity("ERROR :400 Bad Syntax:New status shouldbe : available or lost or inQueue or checkedOut.").build();
+
 			}
 		}
-		if(book != null) {
-			//Save the book back to bookRepository
-			bookRepository.updateBook(book, isbn.get());
-		}
-		
+		//Save the book back to bookRepository
+		bookRepository.updateBook(book, isbn.get());
+
+
 		String location = "/books/" + isbn;
 		
 		// The response should contain only links. View update delete create-review
@@ -186,9 +197,13 @@ public class BookResource {
 	{
 		// Get book with the isbn.
 		Book book= bookRepository.getBookByISBN(isbn.get());
+		if (book == null){
+			//When book is not found. Error message shown.
+			return Response.status(404).entity("ERROR :404 Book with isbn :"+isbn+" not found").build();
+		}
 		// Store the new Review in the BookRepository so that we can retrieve it.
 		Review savedReview = bookRepository.saveReview(isbn.get(), request);
-
+		
 		String location = "/books/" + book.getIsbn() + "/reviews/" + savedReview.getReviewId();
 		
 		LinksDto links = new LinksDto();
@@ -208,6 +223,10 @@ public class BookResource {
 				//Book book= bookRepository.getBookByISBN(isbn.get());
 				
 				Review review = bookRepository.viewReview(isbn.get(), reviewId.get());
+				if (review == null){
+					//When book is not found. Error message shown.
+					return Response.status(404).entity("ERROR :404 Review with id :"+reviewId.get()+" not found").build();
+				}
 				ReviewDto response = new ReviewDto(review);
 				response.addLink(new LinkDto("view-review", "/books/" + isbn.get()+ "/reviews/"+review.getReviewId(),"GET"));
 				return Response.status(200).entity(response).build();
@@ -223,6 +242,10 @@ public class BookResource {
 				//Book book= bookRepository.getBookByISBN(isbn.get());
 				
 				List<Review> reviewList = bookRepository.viewAllReview(isbn.get());
+				if (reviewList == null){
+					//When book is not found. Error message shown.
+					return Response.status(404).entity("ERROR :404 Reviews not found.").build();
+				}
 				ReviewDto response = new ReviewDto();
 				for(int i=0; reviewList!=null && i<reviewList.size(); i++){
 					response.addReview(reviewList.get(i));
@@ -241,7 +264,10 @@ public class BookResource {
 	public Response viewAuthor(@PathParam("isbn") LongParam isbn,@PathParam("authorId") IntParam authorId)
 	{
 		        Author author = bookRepository.viewAuthor(isbn.get(), authorId.get());
-				
+		        if (author == null){
+					//When book is not found. Error message shown.
+					return Response.status(404).entity("ERROR :404 Author with id :"+authorId.get()+" not found").build();
+				}
 		
 				AuthorDto response = new AuthorDto(author);
 				response.addLink(new LinkDto("view-review", "/books/" + isbn.get()+ "/authors/"+author.getAuthorId(),"GET"));
@@ -256,6 +282,10 @@ public class BookResource {
 	{
 		
 				List<Author> authorList = bookRepository.viewAllAuthors(isbn.get());
+				if (authorList == null){
+					//When book is not found. Error message shown.
+					return Response.status(404).entity("ERROR :404 Authors not found").build();
+				}
 				AuthorDto response = new AuthorDto();
 				for(int i=0; authorList!=null && i<authorList.size(); i++){
 					response.addAuthor(authorList.get(i));

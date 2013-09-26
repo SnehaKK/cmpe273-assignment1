@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.hibernate.validator.constraints.NotEmpty;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 //import java.util.ArrayList;
 //import java.util.Date;
 //import java.util.List;
@@ -13,15 +15,22 @@ import org.hibernate.validator.constraints.NotEmpty;
 public class Book {
     private long isbn;
     @NotEmpty
+    @JsonProperty("title")
     private String title;
     @NotEmpty
+    @JsonProperty("publication-date")
     private String publicationDate; //(Required field)
+    @JsonProperty("language")
     private String language; //(Optional field)
+    @JsonProperty("num-pages")
     private int numberOfPages; //(Optional field)
-    public enum STATUS { available , checkedOut , inQueue, lost}; 
+    //public enum STATUS { available , checkedOut , inQueue, lost}; 
     @NotEmpty
-    private STATUS bookStatus= STATUS.available; // default value available;
+    @JsonProperty("status")
+    private String bookStatus= "available"; //STATUS.available.toString(); // default value available;
+    @JsonProperty("authors")
     private List<Author> authors =new ArrayList<Author>();
+    @JsonProperty("reviews")
     private List<Review> reviews = new ArrayList<Review>();
     
    
@@ -113,7 +122,7 @@ public class Book {
     /**
      * @return the status
      */
-    public STATUS getBookStatus() 
+    public String getBookStatus() 
     {
     	return bookStatus;
     }
@@ -122,7 +131,7 @@ public class Book {
      * @param status
      *            the status to set
      */
-    public void setBookStatus(STATUS bstatus) 
+    public void setBookStatus(String bstatus) 
     {
     	this.bookStatus = bstatus;
 //    	switch(bstatus)

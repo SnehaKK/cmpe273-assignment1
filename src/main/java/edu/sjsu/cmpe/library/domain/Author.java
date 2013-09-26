@@ -3,12 +3,19 @@
  */
 package edu.sjsu.cmpe.library.domain;
 
+import org.hibernate.validator.constraints.NotEmpty;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * @author snehakulkarni
  *
  */
 public class Author {
+    @JsonProperty("id")
 	private int authorId;
+	@NotEmpty
+    @JsonProperty("name")
 	private String authorName;
 	
 	public int getAuthorId()
